@@ -1,0 +1,35 @@
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_breast_cancer
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+
+data = load_breast_cancer()
+X = data.data
+
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+
+kmeans = KMeans(n_clusters=2, random_state=42)
+clusters = kmeans.fit_predict(X_scaled)
+
+
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+
+
+plt.scatter(X_pca[:,0], X_pca[:,1], c=clusters)
+
+
+centers = pca.transform(kmeans.cluster_centers_)
+plt.scatter(centers[:,0], centers[:,1],s=200)
+
+plt.title("K-Means Clustering")
+plt.xlabel("PC1")
+plt.ylabel("PC2")
+plt.show()

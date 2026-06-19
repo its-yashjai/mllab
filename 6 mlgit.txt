@@ -1,0 +1,21 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+X = np.linspace(0, 10, 100).reshape(-1, 1)
+y = np.sin(X).ravel() + np.random.normal(0, 0.2, 100)
+
+def lwr(x0, X, y, tau):
+    w = np.exp(-((X.ravel()-x0)**2)/(2*tau**2))
+    W = np.diag(w)
+    Xb = np.c_[np.ones(len(X)), X]
+    theta = np.linalg.inv(Xb.T @ W @ Xb) @ Xb.T @ W @ y
+    return np.array([1, x0]) @ theta
+
+tau = 0.5
+y_pred = [lwr(x, X, y, tau) for x in X.ravel()]
+
+plt.scatter(X, y, s=10)
+plt.plot(X, y_pred, 'r')
+plt.title("LWR")
+plt.show()

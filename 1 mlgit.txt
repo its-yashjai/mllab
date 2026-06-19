@@ -1,0 +1,40 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = sns.load_dataset('iris')
+col = 'sepal_length'
+
+print("Mean:", df[col].mean())
+print("Median:", df[col].median())
+print("Mode:", df[col].mode()[0])
+print("Variance:", df[col].var())
+print("Std Dev:", df[col].std())
+print("Range:", df[col].max() - df[col].min())
+
+sns.histplot(df[col], kde=True)
+plt.show()
+
+
+sns.boxplot(x=df[col])
+plt.show()
+
+
+Q1 = df[nc].quantile(0.25)
+Q3 = df[nc].quantile(0.75)
+IQR = Q3 - Q1
+
+lb = Q1 - 1.5 * IQR
+ub = Q3 + 1.5 * IQR
+
+out = df[(df[nc] < lb) | (df[nc] > ub)]
+print(f'Outliers:\n{out}')
+
+counts = df['species'].value_counts()
+
+counts.plot(kind='bar')
+plt.show()
+
+counts.plot(kind='pie', autopct='%1.1f%%')
+plt.ylabel('')
+plt.show()

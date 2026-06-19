@@ -1,0 +1,21 @@
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = sns.load_dataset('iris')
+x, y = 'sepal_length', 'sepal_width'
+
+
+sns.scatterplot(data=df, x=x, y=y)
+plt.show()
+
+print("Pearson Correlation:", df[x].corr(df[y]))
+
+
+num_df = df.select_dtypes('number')
+
+print("\nCovariance Matrix:\n", num_df.cov())
+print("\nCorrelation Matrix:\n", num_df.corr())
+
+
+sns.heatmap(num_df.corr(), annot=True, cmap='coolwarm', fmt='.2f')
+plt.show()
