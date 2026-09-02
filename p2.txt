@@ -1,0 +1,81 @@
+import pandas as pd
+import seaborn as sns
+from sklearn.tree import DecisionTreeClassifier,export_text
+
+df=pd.read_csv('titanic.csv')
+
+print("Dataset Loaded:")
+print(df)
+
+df=df[['Pclass','Sex','Age','SibSp','Parch','Fare','Embarked','Survived']].dropna()
+
+df['Class']=df['Survived'].apply(lambda x:'yes' if x==1 else 'no')
+df.drop(columns='Survived',inplace=True)
+
+df=pd.get_dummies(df,columns=['Sex','Embarked'],drop_first=True)
+
+print("Sample data:")
+print(df.head())
+
+X=df.drop(columns='Class')
+y=df['Class']
+
+tree=DecisionTreeClassifier(criterion='entropy',max_depth=4)
+tree.fit(X,y)
+
+print("\n[CN2-like] Rules learned using Decision Tree:")
+rules=export_text(tree,feature_names=list(X.columns))
+print(rules)
+
+
+def foil_like(dataframe,target_class='yes'):
+    positives=dataframe[dataframe['Class']==target_class]
+    negatives=dataframe[dataframe['Class']!=target_class]
+
+    final_rules=[]
+
+    for _,pos in positives.iterrows():
+        rule=[]
+
+        for attr in dataframe.columns[:-1]:
+            val=pos[attr]
+
+            if isinstance(val,(int,float)):
+                rule.append(f"{attr} <= {round(val,2)}")
+            else:
+                rule.append(f"{attr} = {val}")
+
+        def rule_matches(row):
+            for cond in rule:
+                if '<=' in cond:
+                    attr,value=cond.split('<=')
+                    attr=attr.strip()
+                    value=float(value.strip())
+
+                    if float(row[attr])>value:
+                        return False
+
+                elif '=' in cond:
+                    attr,value=cond.split('=')
+                    attr=attr.strip()
+                    value=value.strip()
+
+                    if str(row[attr])!=value:
+                        return False
+
+            return True
+
+        match_neg=any(rule_matches(row) for _,row in negatives.iterrows())
+
+        if not match_neg:
+            final_rules.append(" AND ".join(rule))
+
+    return final_rules[:5]
+
+
+foil_rules=foil_like(df,target_class='yes')
+
+print("\n[FOIL-like] Rules for Class = yes:")
+
+for rule in foil_rules:
+    print(f"IF {rule} THEN Class = yes")

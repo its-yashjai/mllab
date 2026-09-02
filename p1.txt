@@ -1,0 +1,115 @@
+import pandas as pd
+
+df=pd.read_csv('weather.csv')
+attributes=list(df.columns[:-1])
+
+def find_s_algorithm(data):
+    hypothesis=['0']*len(attributes)
+
+    for _,row in data.iterrows():
+        if row['Class']=='Yes':
+            instance=row.iloc[:-1]
+
+            if hypothesis==['0']*len(attributes):
+                hypothesis=list(instance)
+            else:
+                for j in range(len(hypothesis)):
+                    if hypothesis[j]!=instance.iloc[j]:
+                        hypothesis[j]='?'
+
+    return hypothesis
+
+def candidate_elimination(data):
+    def consistent(hypo,instance):
+        return all(h=='?' or h==val for h,val in zip(hypo,instance))
+
+    S=[['0']*len(attributes)]
+    G=[['?' for _ in range(len(attributes))]]
+
+    for _,row in data.iterrows():
+        instance=list(row[:-1])
+        label=row['Class']
+
+        if label=='Yes':
+            G=[g for g in G if consistent(g,instance)]
+
+            new_S=[]
+            for s in S:
+                updated=s.copy()
+
+                for i in range(len(updated)):
+                    if updated[i]=='0':
+                        updated[i]=instance[i]
+                    elif updated[i]!=instance[i]:
+                        updated[i]='?'
+
+                new_S.append(updated)
+
+            S=new_S
+            S=[s for s in S if any(consistent(g,s) for g in G)]
+
+        else:
+            S=[s for s in S if not consistent(s,instance)]
+
+            new_G=[]
+            for g in G:
+                if consistent(g,instance):
+                    for i in range(len(g)):
+                        if g[i]=='?':
+                            for val in df[attributes[i]].unique():
+                                if val!=instance[i]:
+                                    new_hypo=g.copy()
+                                    new_hypo[i]=val
+
+                                    if any(consistent(new_hypo,s) for s in S):
+                                        new_G.append(new_hypo)
+                else:
+                    new_G.append(g)
+
+            G=new_G
+
+    return S,G
+
+print("Dataset Loaded:")
+print(df)
+
+final_hypothesis=find_s_algorithm(df)
+print("\n[Find-S] Final Hypothesis:")
+print(final_hypothesis)
+
+S_final,G_final=candidate_elimination(df)
+
+print("\n[Candidate Elimination] Most Specific Hypotheses (S):")
+for s in S_final:
+    print(s)
+
+print("\n[Candidate Elimination] Most General Hypotheses (G):")
+for g in G_final:
+    print(g)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

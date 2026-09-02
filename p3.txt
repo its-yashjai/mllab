@@ -1,0 +1,58 @@
+from sklearn.datasets import load_iris
+from sklearn.ensemble import BaggingClassifier, AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+
+
+
+
+
+
+
+
+
+
+iris=load_iris()
+X=iris.data
+y=iris.target
+
+np.random.seed(42)
+X_noisy=X+np.random.normal(0,0.5,X.shape)
+
+X_train,X_test,y_train,y_test=train_test_split(X_noisy,y,test_size=0.3,random_state=42)
+
+bagging_model=BaggingClassifier(
+    estimator=DecisionTreeClassifier(),
+    n_estimators=50,
+    random_state=1
+)
+
+bagging_model.fit(X_train,y_train)
+bagging_preds=bagging_model.predict(X_test)
+
+boosting_model=AdaBoostClassifier(
+    estimator=DecisionTreeClassifier(max_depth=1),
+    n_estimators=50,
+    random_state=1
+)
+
+boosting_model.fit(X_train,y_train)
+boosting_preds=boosting_model.predict(X_test)
+
+def evaluate_model(name,y_true,y_pred):
+    print(f"\n{name} Results:")
+    print(f"Accuracy: {accuracy_score(y_true,y_pred):.4f}")
+    print("Confusion Matrix:")
+    print(confusion_matrix(y_true,y_pred))
+    print("Classification Report:")
+    print(classification_report(y_true,y_pred,target_names=iris.target_names))
+
+evaluate_model("Bagging",y_test,bagging_preds)
+evaluate_model("Boosting",y_test,boosting_preds)
